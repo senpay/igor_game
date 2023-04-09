@@ -1,7 +1,28 @@
+import random
+
 class Field:
     
     WIDTH = 640
     HEIGHT = 480
+
+class Food:
+    '''A food that can be eaten by the player. Sprite - food.png'''
+
+    WIDTH = 45
+    HEIGHT = 45
+    SPRITE_NAME = "food.png"
+
+    def __init__(self, y):
+        self._x = random.randint(0, Field.WIDTH - Food.WIDTH)
+        self._y = y
+
+    @property
+    def x(self):
+        return self._x
+
+    @property
+    def y(self):
+        return self._y
 
 class Player:
     '''A zombie that can move around the screen. Sprite - zombie.png'''
