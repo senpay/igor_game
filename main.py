@@ -1,24 +1,20 @@
 import pygame
 import sys
 
-from model import Field, Food, Player
+from model import Field, Zombie, Player
+from view import CharacterView
 
 pygame.init()
+eaten = 0
 
 screen = pygame.display.set_mode((Field.WIDTH, Field.HEIGHT))
 pygame.display.set_caption("My Pygame Game")
 
 player = Player(10, Field.HEIGHT - Player.HEIGHT - 70)
-player_sprite = pygame.image.load(player.SPRITE_NAME)
-player_rect = player_sprite.get_rect()
-player_rect.x = player.x
-player_rect.y = player.y
+playerview = CharacterView(player, screen)
 
-food = Food(Field.HEIGHT - Player.HEIGHT - 40)
-food_sprite = pygame.image.load(food.SPRITE_NAME)
-food_rect = food_sprite.get_rect()
-food_rect.x = food.x
-food_rect.y = food.y
+zombie = Zombie(Field.HEIGHT - Player.HEIGHT - 70)
+zombieview = CharacterView(zombie, screen)
 
 
 clock = pygame.time.Clock()
@@ -36,6 +32,8 @@ while True:
             sys.exit()
 
     keys = pygame.key.get_pressed()
+
+
     if keys[pygame.K_LEFT]:
         player.move_left()
     if keys[pygame.K_RIGHT]:
@@ -44,23 +42,27 @@ while True:
         player.jump()
 
 
-    player_rect.x = player.x
-    player_rect.y = player.y
 
     screen.blit(background_img, (0, 0))
-    screen.blit(player_sprite, player_rect)
-    screen.blit(food_sprite, food_rect)
+    playerview.blit()
+    zombieview.blit()
+
+    # Set up the font
+    font = pygame.font.SysFont("Arial", 36)
+    escaped = zombie.reset_count
+
+    # Render the text
+    text = font.render(f"You were eaten {eaten} and escaped {escaped} times", True, (3, 245, 3))
+
+    # Blit the text to the screen
+    screen.blit(text, (200, 10))
 
 
-    if food_rect.colliderect(player_rect):
-        # Set up the font
-        font = pygame.font.SysFont("Arial", 36)
-
-        # Render the text
-        text = font.render("yammie niam niam", True, (3, 245, 3))
-
-        # Blit the text to the screen
-        screen.blit(text, (200, 10))
+    if playerview.touches(zombieview):
+        eaten += 1
+        lost = True
+        zombie.reset()
+        player.reset()
 
     clock.tick(FPS) 
     pygame.display.update()
