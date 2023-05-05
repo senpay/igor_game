@@ -106,6 +106,10 @@ class Player(Movable):
                 self._jumping = False
 
         return self._y
+    
+    
+
+
 
     
 

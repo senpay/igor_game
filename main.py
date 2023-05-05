@@ -22,6 +22,10 @@ FPS = 60
 
 # Load the background image
 background_img = pygame.image.load("background.png").convert()
+lost = False
+
+# Set up the font
+font = pygame.font.SysFont("Arial", 36)
 
 # Main loop here
 while True:
@@ -30,6 +34,18 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+    
+    if lost:
+        lost_text = font.render(f"You lost, hahaha! (press space to restart)", True, (234, 12, 3))
+        screen.blit(lost_text, (50, 200))
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]:
+            lost = False
+            zombie.reset()
+            player.reset()
+        clock.tick(FPS) 
+        pygame.display.update()
+        continue
 
     keys = pygame.key.get_pressed()
 
@@ -47,22 +63,19 @@ while True:
     playerview.blit()
     zombieview.blit()
 
-    # Set up the font
-    font = pygame.font.SysFont("Arial", 36)
-    escaped = zombie.reset_count
+
+    escaped = 1
 
     # Render the text
-    text = font.render(f"You were eaten {eaten} and escaped {escaped} times", True, (3, 245, 3))
+    text = font.render(f"Eaten {eaten}; Escaped {escaped} ", True, (3, 255, 3))
 
     # Blit the text to the screen
     screen.blit(text, (200, 10))
 
 
-    if playerview.touches(zombieview):
+    if playerview.touches(zombieview) or lost:
         eaten += 1
         lost = True
-        zombie.reset()
-        player.reset()
 
     clock.tick(FPS) 
     pygame.display.update()
