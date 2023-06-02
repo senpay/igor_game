@@ -37,8 +37,8 @@ class Circle:
     def move(self, dt):
         dx = self.velocity * dt
         
-        self.x += dx
-        circle_y += self.angle * dx
+        self._x += dx
+        self._y += self.angle * dx
 
         if self.x > WIDTH - RADIUS - 1 or self.x < RADIUS + 1:
             self.velocity = -self.velocity
