@@ -62,3 +62,6 @@ cover/
 # Cython debug symbols
 cython_debug/
 
+images/.DS_Store
+.DS_Store
+
