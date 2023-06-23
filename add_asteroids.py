@@ -2,15 +2,22 @@ TITLE = "My cool game"
 WIDTH = 600
 HEIGHT = 600
 BG_COLOR = (0, 51, 102)
+RED = 200, 0, 0
+WHITE = 255, 255, 255
+
 
 import random
 import pgzero, pgzrun
 from pgzero.actor import Actor
+from pygame import Rect
 
 # This is here just to make the IDE happy
 # otherwise it is going to complain about screen.* calls
 screen: pgzero.screen.Screen
 keyboard: pgzero.keyboard.Keyboard
+
+box = Rect(((WIDTH/2 - 100), 50), (200, 100))
+
 
 class Fire(Actor):
     def __init__(self, spaceship: Actor, relative_position: tuple):
@@ -85,6 +92,7 @@ fire_left = Fire(space_ship, (-15, 20))
 asteroid = Asteroid()
 
 sprites = [space_ship, fire_right, fire_left, asteroid]
+game_started = False
 
 def update():
     for sprite in sprites:
@@ -93,7 +101,12 @@ def update():
 
 def draw():
     screen.fill(BG_COLOR)
-    for sprite in sprites:
-        sprite.draw()
+    if not game_started:
+        screen.draw.rect(BOX, RED)
+        screen.draw.textbox("Start new game", BOX, color="orange")
+        screen.draw.text(f"Don't let an asteroid to hit your spaceship!\nUse arrows to move the spaceship", (30, 500), color="white")
+    else:
+        for sprite in sprites:
+            sprite.draw()
 
 pgzrun.go()

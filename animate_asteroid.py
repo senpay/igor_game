@@ -2,108 +2,78 @@ TITLE = "My cool game"
 WIDTH = 600
 HEIGHT = 600
 BG_COLOR = (0, 51, 102)
+RED = 200, 0, 0
+WHITE = 255, 255, 255
 
-import random
 import pgzero, pgzrun
-from pgzero.actor import Actor
+from pgzero import music
+from pygame import Rect
+import datetime
+
 
 # This is here just to make the IDE happy
 # otherwise it is going to complain about screen.* calls
 screen: pgzero.screen.Screen
 keyboard: pgzero.keyboard.Keyboard
 
-class Fire(Actor):
-    def __init__(self, spaceship: Actor, relative_position: tuple):
-        super().__init__("fire.png")
-        self.spaceship = spaceship
-        self.relative_position = relative_position
-        self.visible = False
-    
-    def update(self):
-        if keyboard.up or keyboard.down or keyboard.left or keyboard.right:
-            self.visible = True
-        else:
-            self.visible = False
+box = Rect(((WIDTH/2 - 100), 50), (200, 100))
 
-        self.x = self.spaceship.x + self.relative_position[0]
-        self.y = self.spaceship.y + self.relative_position[1]
+from model.asteroid import Asteroid
+from model.spaceship import Spaceship
+from model.explosion import Explosion
 
-    def draw(self):
-        if self.visible:
-            super().draw()
+music.play('music.mp3')
 
-class Asteroid(Actor):
 
-    def __init__(self):
-        super().__init__("asteroid.png")
-        self.x = self.width + 10
-        self.y = self.height + 10
-        self.k = random.uniform(0.1, 2.0)
-        self.velocity = 3
-        self.angle_randomization = random.uniform(0.01, 0.09)
-        self.padding = 15
-
-    def update(self):
-        self.x += self.velocity
-        self.y += self.velocity * self.k
-        self.angle += 1
-
-        if self.left < -self.padding or self.right > WIDTH + self.padding:
-            self.k = -(self.k + self.angle_randomization)
-            self.velocity = -self.velocity
-        if self.top < -self.padding or self.bottom > HEIGHT + self.padding:
-            self.k = -(self.k + self.angle_randomization)
-
-class Spaceship(Actor):
-
-    VELOCITY = 5
-
-    def __init__(self, asteroid):
-        super().__init__("spaceship.png")
-        self.x = WIDTH / 2
-        self.y = HEIGHT / 2
-        self.destroyed = False
-        self.asteroid = asteroid
-
-    def update(self):
-        if keyboard.left:
-            self.x -= self.VELOCITY
-            if self.x < 0:
-                self.x = 0
-        if keyboard.right:
-            self.x += self.VELOCITY
-            if self.x > WIDTH:
-                self.x = WIDTH
-        if keyboard.up:
-            self.y -= self.VELOCITY
-            if self.y < 0:
-                self.y = 0
-        if keyboard.down:
-            self.y += self.VELOCITY
-            if self.y > HEIGHT:
-                self.y = HEIGHT
-        if self.collidepoint(asteroid.pos):
-            self.destroyed = True
-
-    def draw(self):
-        if not self.destroyed:
-            super().draw()
-
-asteroid = Asteroid()
-space_ship = Spaceship(asteroid)
-fire_right = Fire(space_ship, (15, 20))
-fire_left = Fire(space_ship, (-15, 20))
-
-sprites = [space_ship, fire_right, fire_left, asteroid]
+sprites = []
+game_started = False
+highscore = 0
+now = datetime.datetime.now()
+latest_score = now - now
+start_time = 0
 
 def update():
-    for sprite in sprites:
-        sprite.update()
-    
+    global game_started
+    global highscore
+    global latest_score
+    if len(sprites) and sprites[0].destroyed and game_started:
+        latest_score = datetime.datetime.now() - start_time
+        highscore = max(highscore, latest_score.total_seconds())
+        game_started = False
+    if game_started:
+        for sprite in sprites:
+            sprite.update()
+
+def on_mouse_down(pos):
+    global game_started
+    global start_time
+    global latest_score
+
+    if box.collidepoint(pos):
+        game_started = True
+        start_time = datetime.datetime.now()
+        latest_score = 0
+
+        explosion = Explosion()
+        asteroid = Asteroid()
+
+        space_ship = Spaceship(WIDTH / 2, HEIGHT / 2, asteroid, explosion, keyboard)
+        sprites.clear()
+        sprites.append(space_ship)
+        sprites.append(asteroid)
+        sprites.append(explosion)
 
 def draw():
     screen.fill(BG_COLOR)
-    for sprite in sprites:
-        sprite.draw()
+    if not game_started:
+        screen.draw.rect(box, RED)
+        screen.draw.textbox("Start new game", box, color="orange")
+        screen.draw.text(f"Don't let an asteroid to hit your spaceship!\nUse arrows to move the spaceship", (30, 500), color="white")
+        screen.draw.text(f"You survived for: {int(latest_score.total_seconds())} seconds", (30, 550), color="white")
+        screen.draw.text(f"Highscore: {int(highscore)} seconds", (30, 570), color="white")
+    else:
+        for sprite in sprites:
+            sprite.draw()
+        screen.draw.text(f"Power: {sprites[0].power}%", (30, 500), color="white")
 
 pgzrun.go()
